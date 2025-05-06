@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  api:
+    build: ./api
+    container_name: coffee-api
+    ports:
+      - "8000:8000"
+    depends_on:
+      - mariadb
+      - rabbitmq
+    environment:
+      - DATABASE_URL=mysql://root:root@mariadb:3306/coffeedb
+      - RABBITMQ_HOST=rabbitmq
+    volumes:
+      - ./api/skeleton:/var/www/html/api/skeleton
+    networks:
+      - coffee-net
+    command: php -S 0.0.0.0:8000 -t /var/www/html/api/skeleton/public
+
+  front:
+    build: ./front
+    container_name: coffee-front
+    ports:
+      - "4000:3000"
+    volumes:
+      - ./front:/app
+    networks:
+      - coffee-net
+
+  mariadb:
+    image: mariadb:10.5
+    container_name: coffee-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: coffeedb
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./mariadb_custom.cnf:/etc/mysql/conf.d/mariadb_custom.cnf  # Ajoute cette ligne
+    networks:
+      - coffee-net
+
+  adminer:
+    image: adminer
+    container_name: coffee-adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - coffee-net
+
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: coffee-rabbitmq
+    ports:
+      - "5672:5672"      # Port d'écoute AMQP
+      - "15672:15672"    # Interface Web de gestion
+    networks:
+      - coffee-net
+
+volumes:
+  db_data:
+
+networks:
+  coffee-net:
+    driver: bridge
