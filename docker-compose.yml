@@ -10,8 +10,9 @@ services:
       - mariadb
       - rabbitmq
     environment:
-      - DATABASE_URL=mysql://root:root@mariadb:3306/coffeedb
-      - RABBITMQ_HOST=rabbitmq
+      APP_SECRET: ${APP_SECRET:-dev-secret}
+      DATABASE_URL: mysql://root:root@mariadb:3306/coffeedb
+      RABBITMQ_HOST: rabbitmq
     volumes:
       - ./api/skeleton:/var/www/html/api/skeleton
     networks:

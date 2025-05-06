@@ -1,5 +1,6 @@
 vendor/
 node_modules/
 .next/
-.env
+*.env
+!api/skeleton/.env
 .DS_Store
