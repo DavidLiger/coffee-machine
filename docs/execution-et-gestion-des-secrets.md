@@ -20,7 +20,7 @@ environment:
   APP_SECRET: ${APP_SECRET:-dev-secret}
   DATABASE_URL: mysql://root:root@mariadb:3306/coffeedb
   RABBITMQ_HOST: rabbitmq
-
+```
 Voici la version Markdown que tu peux utiliser pour ton document `execution-et-gestion-des-secrets.md` à placer dans ton dossier `docs/` :
 
 ````markdown
