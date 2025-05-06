@@ -21,32 +21,6 @@ environment:
   DATABASE_URL: mysql://root:root@mariadb:3306/coffeedb
   RABBITMQ_HOST: rabbitmq
 ```
-Voici la version Markdown que tu peux utiliser pour ton document `execution-et-gestion-des-secrets.md` à placer dans ton dossier `docs/` :
-
-````markdown
-# Choix d'architecture : Gestion des secrets et lancement en une commande
-
-## 🎯 Objectifs
-
-- Respecter l’instruction : **“Le projet doit fonctionner via Docker et se lancer en une seule ligne de commande”**
-- **Ne pas exposer de secrets sensibles** dans le dépôt Git (respect GitGuardian)
-- Garantir la **portabilité du projet** sans étapes manuelles supplémentaires
-
----
-
-## 🔐 Gestion des secrets
-
-### Solution retenue
-
-Les variables sensibles comme `APP_SECRET`, `DATABASE_URL` et `RABBITMQ_HOST` ne sont **pas codées en dur** dans un fichier `.env` suivi par Git.  
-À la place, elles sont injectées directement via la directive `environment:` du `docker-compose.yml`, et la syntaxe suivante est utilisée :
-
-```yaml
-environment:
-  APP_SECRET: ${APP_SECRET:-dev-secret}
-  DATABASE_URL: mysql://root:root@mariadb:3306/coffeedb
-  RABBITMQ_HOST: rabbitmq
-````
 
 Cela permet de :
 
