@@ -2,34 +2,32 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Metadata\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity
- */
+#[ORM\Entity]
+#[ApiResource(
+    operations: [
+        new \ApiPlatform\Metadata\GetCollection(),
+        new \ApiPlatform\Metadata\Post(),
+        new \ApiPlatform\Metadata\Get()
+    ]
+)]
 class CoffeeOrder
 {
-    /**
-     * @ORM\Id
-     * @ORM\GeneratedValue
-     * @ORM\Column(type="integer")
-     */
-    private $id;
+    #[ORM\Id]
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    private ?int $id = null;
 
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $type;
+    #[ORM\Column(type: 'string')]
+    private string $type;
 
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $intensity;
+    #[ORM\Column(type: 'string')]
+    private string $intensity;
 
-    /**
-     * @ORM\Column(type="string")
-     */
-    private $size;
+    #[ORM\Column(type: 'string')]
+    private string $size;
 
     public function getId(): ?int
     {
@@ -69,3 +67,6 @@ class CoffeeOrder
         return $this;
     }
 }
+
+
+

@@ -12,10 +12,10 @@ services:
       DATABASE_URL: mysql://root:root@mariadb:3306/coffeedb
       RABBITMQ_HOST: rabbitmq
     volumes:
-      - ./api/skeleton:/var/www/html/api/skeleton
+      - ./api:/var/www/html/api
     networks:
       - coffee-net
-    command: php -S 0.0.0.0:8000 -t /var/www/html/api/skeleton/public
+    command: php -S 0.0.0.0:8000 -t /var/www/html/api/public
 
   front:
     build: ./front
@@ -29,7 +29,6 @@ services:
 
   mariadb:
     image: mariadb:10.5
-    container_name: coffee-db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
