@@ -1,0 +1,9 @@
+# config/routes/api_platform.yaml
+api_platform:
+  resource:
+    App\Entity\CoffeeOrder:
+      collectionOperations:
+        get: ~
+        post: ~
+      itemOperations:
+        get: ~
