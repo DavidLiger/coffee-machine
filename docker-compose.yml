@@ -13,8 +13,6 @@ services:
       RABBITMQ_HOST: rabbitmq
     volumes:
       - ./api:/var/www/html/api
-    networks:
-      - coffee-net
     command: php -S 0.0.0.0:8000 -t /var/www/html/api/public
 
   front:
@@ -24,11 +22,10 @@ services:
       - "4000:3000"
     volumes:
       - ./front:/app
-    networks:
-      - coffee-net
 
   mariadb:
     image: mariadb:10.5
+    container_name: coffee-db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -38,8 +35,6 @@ services:
     volumes:
       - db_data:/var/lib/mysql
       - ./mariadb_custom.cnf:/etc/mysql/conf.d/mariadb_custom.cnf  # Ajoute cette ligne
-    networks:
-      - coffee-net
 
   adminer:
     image: adminer
@@ -47,8 +42,6 @@ services:
     restart: always
     ports:
       - "8080:8080"
-    networks:
-      - coffee-net
 
 
   rabbitmq:
@@ -57,8 +50,6 @@ services:
     ports:
       - "5672:5672"      # Port d'écoute AMQP
       - "15672:15672"    # Interface Web de gestion
-    networks:
-      - coffee-net
 
 volumes:
   db_data:
