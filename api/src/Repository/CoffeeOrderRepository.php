@@ -48,4 +48,16 @@ class CoffeeOrderRepository extends ServiceEntityRepository
     {
         return $this->findBy(['status' => CoffeeStatus::DONE], ['createdAt' => 'DESC']);
     }
+
+    public function findOldestPendingOrder(): ?CoffeeOrder
+    {
+        return $this->createQueryBuilder('o')
+            ->andWhere('o.status = :status')
+            ->setParameter('status', CoffeeStatus::PENDING)
+            ->orderBy('o.createdAt', 'ASC')
+            ->setMaxResults(1)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
 }

@@ -24,7 +24,8 @@ class CoffeeOrderMessageHandler
             throw new \Symfony\Component\Messenger\Exception\RecoverableMessageHandlingException('Process is stopped, retry later.');
         }
 
-        $order = $this->orderRepository->findOneBy(['externalId' => $message->externalId]);
+        // Récupère la commande la plus ancienne en attente
+        $order = $this->orderRepository->findOldestPendingOrder();
 
         if (!$order) {
             // L'ordre n'existe pas (erreur logique), on ignore
