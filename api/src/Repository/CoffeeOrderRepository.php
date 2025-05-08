@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\CoffeeOrder;
+use App\Enum\CoffeeStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -16,10 +17,11 @@ class CoffeeOrderRepository extends ServiceEntityRepository
     // Ajout d'une nouvelle commande
     public function save(CoffeeOrder $order, bool $flush = false): void
     {
-        $this->_em->persist($order);
+        $entityManager = $this->getEntityManager(); // Utilise la méthode getEntityManager()
+        $entityManager->persist($order);
 
         if ($flush) {
-            $this->_em->flush();
+            $entityManager->flush();
         }
     }
 
@@ -38,12 +40,12 @@ class CoffeeOrderRepository extends ServiceEntityRepository
     // Trouver la commande en cours
     public function findCurrentOrder(): ?CoffeeOrder
     {
-        return $this->findOneBy(['status' => 'IN_PROGRESS'], ['createdAt' => 'ASC']);
+        return $this->findOneBy(['status' => CoffeeStatus::IN_PROGRESS], ['createdAt' => 'ASC']);
     }
 
     // Trouver les commandes terminées
     public function findCompletedOrders(): array
     {
-        return $this->findBy(['status' => 'COMPLETED'], ['createdAt' => 'DESC']);
+        return $this->findBy(['status' => CoffeeStatus::DONE], ['createdAt' => 'DESC']);
     }
 }

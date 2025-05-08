@@ -10,16 +10,17 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Message\CoffeeOrderMessage;
 use App\Repository\CoffeeOrderRepository;
+use App\Service\CoffeeProcessService;
 use Symfony\Component\Messenger\MessageBusInterface;
 
 class CoffeeOrderController extends AbstractController
 {
-    private $coffeeProcessService;
     private CoffeeOrderRepository $orderRepository;
 
     public function __construct(
         private MessageBusInterface $bus,
-        CoffeeOrderRepository $orderRepository
+        CoffeeOrderRepository $orderRepository,
+        private CoffeeProcessService $coffeeProcessService 
     ) {
         $this->orderRepository = $orderRepository;
     }
@@ -88,16 +89,40 @@ class CoffeeOrderController extends AbstractController
     #[Route('/orders/current', name: 'orders_current', methods: ['GET'])]
     public function getCurrentOrder(): JsonResponse
     {
-        $order = $this->orderRepository->findCurrentOrder();
-        return new JsonResponse($order);
+        $order = $this->orderRepository->findOneBy(['status' => CoffeeStatus::IN_PROGRESS]);
+    
+        if (!$order) {
+            return new JsonResponse(['message' => 'No order in progress'], 404);
+        }
+    
+        return $this->json($order, 200, [], ['groups' => ['coffee:read']]);
     }
     
     #[Route('/orders/history', name: 'orders_history', methods: ['GET'])]
-    public function getCompletedOrders(): JsonResponse
+    public function getOrdersHistory(): JsonResponse
     {
-        $orders = $this->orderRepository->findCompletedOrders();
-        return new JsonResponse($orders);
-    }    
+        $orders = $this->orderRepository->findBy(
+            ['status' => CoffeeStatus::DONE],
+            ['endedAt' => 'DESC']
+        );
+    
+        $data = array_map(function (CoffeeOrder $order) {
+            return [
+                'id' => $order->getId(),
+                'type' => $order->getType(),
+                'intensity' => $order->getIntensity(),
+                'size' => $order->getSize(),
+                'status' => $order->getStatus()->value,
+                'createdAt' => $order->getCreatedAt()->format('Y-m-d H:i:s'),
+                'startedAt' => $order->getStartedAt()?->format('Y-m-d H:i:s'),
+                'endedAt' => $order->getEndedAt()?->format('Y-m-d H:i:s'),
+                'stepsLog' => $order->getStepsLog(),
+            ];
+        }, $orders);
+        
+        return new JsonResponse($data);
+        
+    }     
 
     #[Route('/order/{id}', name: 'order_detail', methods: ['GET'])]
     public function orderDetail(int $id): JsonResponse

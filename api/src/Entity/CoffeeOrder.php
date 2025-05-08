@@ -15,7 +15,9 @@ use Symfony\Component\Serializer\Annotation\Groups;
         new \ApiPlatform\Metadata\GetCollection(),
         new \ApiPlatform\Metadata\Post(),
         new \ApiPlatform\Metadata\Get()
-    ]
+    ],
+    normalizationContext: ['groups' => ['coffee:read']],
+    denormalizationContext: ['groups' => ['coffee:write']],
 )]
 class CoffeeOrder
 {
@@ -24,27 +26,35 @@ class CoffeeOrder
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
+    #[Groups(['coffee:read', 'coffee:write'])]
     #[ORM\Column(type: 'string')]
     private string $type;
 
+    #[Groups(['coffee:read', 'coffee:write'])]
     #[ORM\Column(type: 'string')]
     private string $intensity;
 
+    #[Groups(['coffee:read', 'coffee:write'])]
     #[ORM\Column(type: 'string')]
     private string $size;
 
+    #[Groups(['coffee:read'])]
     #[ORM\Column(type: 'string', enumType: CoffeeStatus::class)]
     private CoffeeStatus $status = CoffeeStatus::PENDING;
 
+    #[Groups(['coffee:read'])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private \DateTime $createdAt;
 
+    #[Groups(['coffee:read'])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTime $startedAt = null;
 
+    #[Groups(['coffee:read'])]
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     private ?\DateTime $endedAt = null;
 
+    #[Groups(['coffee:read'])]
     #[ORM\Column(type: Types::JSON, nullable: true)]
     private ?array $stepsLog = null;
 
