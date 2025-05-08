@@ -27,3 +27,8 @@ RUN apt-get update && apt-get install -y librabbitmq-dev libssh-dev \
 
 # Exécuter composer install pour les dépendances
 RUN composer install --no-interaction
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+
