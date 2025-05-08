@@ -5,6 +5,7 @@ namespace App\Message;
 class CoffeeOrderMessage
 {
     public function __construct(
+        public string $externalId,
         public readonly string $type,
         public readonly string $intensity,
         public readonly string $size,

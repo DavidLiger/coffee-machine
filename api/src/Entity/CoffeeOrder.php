@@ -26,6 +26,10 @@ class CoffeeOrder
     #[ORM\Column(type: 'integer')]
     private ?int $id = null;
 
+    #[ORM\Column(type: 'string', length: 36, unique: true)]
+    #[Groups(['coffee:read', 'coffee:write'])]
+    private string $externalId;
+
     #[Groups(['coffee:read', 'coffee:write'])]
     #[ORM\Column(type: 'string')]
     private string $type;
@@ -67,6 +71,17 @@ class CoffeeOrder
     public function getType(): ?string
     {
         return $this->type;
+    }
+
+    public function getExternalId(): ?string
+    {
+        return $this->externalId;
+    }
+
+    public function setExternalId(string $externalId): self
+    {
+        $this->externalId = $externalId;
+        return $this;
     }
 
     public function setType(string $type): self

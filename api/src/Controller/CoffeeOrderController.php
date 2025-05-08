@@ -10,8 +10,9 @@ use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Message\CoffeeOrderMessage;
 use App\Repository\CoffeeOrderRepository;
-use App\Service\CoffeeProcessService;
+use App\Service\CoffeeProcessStateService;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Uid\Uuid;
 
 class CoffeeOrderController extends AbstractController
 {
@@ -20,7 +21,7 @@ class CoffeeOrderController extends AbstractController
     public function __construct(
         private MessageBusInterface $bus,
         CoffeeOrderRepository $orderRepository,
-        private CoffeeProcessService $coffeeProcessService 
+        private CoffeeProcessStateService $coffeeProcessService 
     ) {
         $this->orderRepository = $orderRepository;
     }
@@ -29,32 +30,33 @@ class CoffeeOrderController extends AbstractController
     public function orderCoffee(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
+        $uuid = Uuid::v4()->toRfc4122();
 
         $order = new CoffeeOrder();
-        $order->setType($data['type'])
-              ->setIntensity($data['intensity'])
-              ->setSize($data['size'])
-              ->setStatus(CoffeeStatus::PENDING)
-              ->setCreatedAt(new \DateTime());
+        $order->setExternalId($uuid);
+        $order->setType($data['type']);
+        $order->setIntensity($data['intensity']);
+        $order->setSize($data['size']);
+        $order->setStatus(CoffeeStatus::PENDING);
+        $order->setCreatedAt(new \DateTime());
+        $this->orderRepository->save($order, true);
 
         // On crée un message avec les données de la commande
         $message = new CoffeeOrderMessage(
+            $uuid,
             $data['type'],
             $data['intensity'],
             $data['size'],
             CoffeeStatus::PENDING->value,
-            new \DateTime() // On ajoute la date de création
+            new \DateTime()
         );
 
         // Envoie du message dans la file RabbitMQ (via le bus Symfony Messenger)
         $this->bus->dispatch($message);
 
-        // Sauvegarder la commande dans la base de données (pour l'historique)
-        $this->orderRepository->save($order, true);
-
         return new JsonResponse([
             'status' => 'Order queued',
-            'order' => $data
+            'orderId' => $uuid
         ]);
     }
 
@@ -62,7 +64,7 @@ class CoffeeOrderController extends AbstractController
     #[Route('/start', name: 'start_process', methods: ['POST'])]
     public function startProcess()
     {
-        $this->coffeeProcessService->startProcess();
+        $this->coffeeProcessService->start();
 
         return new JsonResponse([
             'status' => 'Process started'
@@ -72,7 +74,7 @@ class CoffeeOrderController extends AbstractController
     #[Route('/stop', name: 'stop_process', methods: ['POST'])]
     public function stopProcess()
     {
-        $this->coffeeProcessService->stopProcess();
+        $this->coffeeProcessService->stop();
 
         return new JsonResponse([
             'status' => 'Process stopped'

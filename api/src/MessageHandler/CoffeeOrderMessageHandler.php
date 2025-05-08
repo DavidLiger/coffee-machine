@@ -1,55 +1,82 @@
 <?php
 
+// src/MessageHandler/CoffeeOrderMessageHandler.php
 namespace App\MessageHandler;
 
-use App\Entity\CoffeeOrder;
 use App\Message\CoffeeOrderMessage;
-use App\Enum\CoffeeStatus;
 use App\Repository\CoffeeOrderRepository;
+use App\Service\CoffeeProcessStateService;
+use App\Enum\CoffeeStatus;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
-use Doctrine\ORM\EntityManagerInterface;
 
-#[AsMessageHandler]
-class CoffeeOrderMessageHandler
+#[AsMessageHandler()]
+class CoffeeOrderMessageHandler 
 {
-
     public function __construct(
         private CoffeeOrderRepository $orderRepository,
-        private EntityManagerInterface $em
-    ) {
-        $this->orderRepository = $orderRepository;
-    }
-    
+        private CoffeeProcessStateService $processStateService
+    ) {}
+
     public function __invoke(CoffeeOrderMessage $message)
     {
-        // Recherche d'une commande existante avec les mêmes données et en statut pending
-        $existingOrder = $this->orderRepository->findOneBy([
-            'type' => $message->type,
-            'intensity' => $message->intensity,
-            'size' => $message->size,
-            'status' => CoffeeStatus::PENDING
-        ]);
+        if (!$this->processStateService->isEnabled()) {
+            // Le process est arrêté : ne pas traiter, le message reste dans la queue
+            return;
+        }
 
-        $order = $existingOrder ?? new CoffeeOrder();
+        $order = $this->orderRepository->findOneBy(['externalId' => $message->externalId]);
 
-        $order->setType($message->type)
-            ->setIntensity($message->intensity)
-            ->setSize($message->size)
-            ->setStatus(CoffeeStatus::IN_PROGRESS)
-            ->setCreatedAt($message->createdAt ?? new \DateTime())
-            ->setStartedAt(new \DateTime())
-            ->setStepsLog([
-                "[" . date('H:i:s') . "] Grinding beans",
-                "[" . date('H:i:s', time() + 3) . "] Heating water",
-                "[" . date('H:i:s', time() + 6) . "] Pouring coffee"
-            ]);
+        if (!$order) {
+            // L'ordre n'existe pas (erreur logique), on ignore
+            return;
+        }
 
-        sleep(3); // Simuler les étapes
+        $order->setStatus(CoffeeStatus::IN_PROGRESS);
+        $order->setStartedAt(new \DateTime());
+        $order->setStepsLog([]);
+        $this->orderRepository->save($order, true);
+
+        $steps = [];
+
+        // Étape 1 : Grinding
+        $steps[] = "[" . date('H:i:s') . "] Grinding beans";
+        $order->setStepsLog($steps);
+        $this->orderRepository->save($order, true);
+        sleep($this->getGrindingTime($order->getIntensity()));
+
+        // Étape 2 : Heating water
+        $steps[] = "[" . date('H:i:s') . "] Heating water";
+        $order->setStepsLog($steps);
+        $this->orderRepository->save($order, true);
+        sleep($this->getWaterTime($order->getSize()));
+
+        // Étape 3 : Pouring
+        $steps[] = "[" . date('H:i:s') . "] Pouring coffee";
+        $order->setStepsLog($steps);
         $order->setEndedAt(new \DateTime());
         $order->setStatus(CoffeeStatus::DONE);
-
         $this->orderRepository->save($order, true);
     }
 
+    private function getGrindingTime(string $intensity): int
+    {
+        return match (strtolower($intensity)) {
+            'high' => 5,
+            'medium' => 3,
+            'low' => 2,
+            default => 3,
+        };
+    }
+
+    private function getWaterTime(string $size): int
+    {
+        return match (strtolower($size)) {
+            'long' => 5,
+            'medium' => 3,
+            'short' => 2,
+            default => 3,
+        };
+    }
 }
+
 
