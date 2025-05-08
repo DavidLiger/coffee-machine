@@ -4,3 +4,4 @@ node_modules/
 *.env
 !api/skeleton/.env
 .DS_Store
+api/coffee_log.txt

@@ -11,6 +11,7 @@ services:
       APP_SECRET: ${APP_SECRET:-dev-secret}
       DATABASE_URL: mysql://root:root@mariadb:3306/coffeedb
       RABBITMQ_HOST: rabbitmq
+      MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f
     volumes:
       - ./api:/var/www/html/api
     command: php -S 0.0.0.0:8000 -t /var/www/html/api/public

@@ -21,5 +21,9 @@ COPY . .
 # Installer Composer (gestionnaire de dépendances PHP)
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
+RUN apt-get update && apt-get install -y librabbitmq-dev libssh-dev \
+    && pecl install amqp \
+    && docker-php-ext-enable amqp
+
 # Exécuter composer install pour les dépendances
 RUN composer install --no-interaction

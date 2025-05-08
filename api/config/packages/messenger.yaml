@@ -1,0 +1,11 @@
+framework:
+  messenger:
+    default_bus: messenger.bus.default
+    transports:
+      async:
+        dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+        options:
+          exchange:
+            name: coffee_exchange
+    routing:
+      'App\Message\CoffeeOrderMessage': async
