@@ -20,8 +20,8 @@ class CoffeeOrderMessageHandler
     public function __invoke(CoffeeOrderMessage $message)
     {
         if (!$this->processStateService->isEnabled()) {
-            // Le process est arrêté : ne pas traiter, le message reste dans la queue
-            return;
+            // Forcer un retry en rejetant temporairement le message
+            throw new \Symfony\Component\Messenger\Exception\RecoverableMessageHandlingException('Process is stopped, retry later.');
         }
 
         $order = $this->orderRepository->findOneBy(['externalId' => $message->externalId]);

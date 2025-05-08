@@ -4,6 +4,11 @@ framework:
     transports:
       async:
         dsn: '%env(MESSENGER_TRANSPORT_DSN)%'
+        retry_strategy:
+          max_retries: 10
+          delay: 5000      # 5s entre les tentatives
+          multiplier: 2    # Augmente à chaque fois
+          max_delay: 60000
         options:
           exchange:
             name: coffee_exchange
