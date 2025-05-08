@@ -16,6 +16,22 @@ services:
       - ./api:/var/www/html/api
     command: php -S 0.0.0.0:8000 -t /var/www/html/api/public
 
+  worker:
+    build: ./api
+    container_name: coffee-worker
+    depends_on:
+      - api
+      - rabbitmq
+    environment:
+      APP_SECRET: ${APP_SECRET:-dev-secret}
+      DATABASE_URL: mysql://root:root@mariadb:3306/coffeedb
+      RABBITMQ_HOST: rabbitmq
+      MESSENGER_TRANSPORT_DSN: amqp://guest:guest@rabbitmq:5672/%2f
+    command: php /var/www/html/api/bin/console messenger:consume async --no-interaction
+    volumes:
+      - ./api:/var/www/html/api
+    restart: always
+
   front:
     build: ./front
     container_name: coffee-front
