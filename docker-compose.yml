@@ -38,7 +38,7 @@ services:
     ports:
       - "4000:3000"
     volumes:
-      - ./front:/app
+      - ./front:/var/www/html/front
 
   mariadb:
     image: mariadb:10.5
